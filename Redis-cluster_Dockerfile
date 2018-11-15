@@ -1,0 +1,41 @@
+FROM centos
+
+MAINTAINER shenggen.cheng
+
+RUN yum install -y unzip zip vim wget bzip2
+RUN yum install -y make gcc g++
+
+COPY redis-5.0.0.tar.gz /usr/local/src/
+
+
+WORKDIR /usr/local/src/
+
+#RUN wget https://github.com/jemalloc/jemalloc/releases/download/5.1.0/jemalloc-5.1.0.tar.bz2
+#RUN tar -xjf jemalloc-5.1.0.tar.bz2
+#RUN cd /usr/local/src/jemalloc-5.1.0 & ./configure & make & make install 
+RUN tar -zxvf redis-5.0.0.tar.gz
+RUN pwd
+RUN cd redis-5.0.0 && make MALLOC=libc  
+RUN mkdir redis_6380 && cp redis-5.0.0/src/redis-server redis_6380 \
+        && cp redis-5.0.0/redis.conf redis_6380/ && sed -i 's/6379/6380/g' redis_6380/redis.conf \
+        && cp -rf redis_6380 redis_6381 && sed -i 's/6380/6381/g' redis_6381/redis.conf
+
+# redis cluster 
+#RUN cp /usr/local/src/redis_6379 /usr/local/src/redis_6380
+
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 \
+        && curl -sSL https://get.rvm.io | bash -s stable 
+#       && source /etc/profile.d/rvm.sh \
+#       && rvm install 2.5.1 \
+#       && gem install redis
+RUN source /etc/profile.d/rvm.sh
+ENV PATH "$PATH:/usr/local/rvm/bin"
+RUN rvm install 2.5.1
+
+
+
+#RUN unzip apache-maven-3.3.9-bin.zip
+
+#ENV JAVA_HOME /usr/local/src/jdk1.8.0_151
+#ENV PATH=$JAVA_HOME/bin:$PATH
+#ENV CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
